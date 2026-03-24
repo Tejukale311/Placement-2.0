@@ -69,11 +69,13 @@ exports.getMockTest = async (req, res) => {
         sections: test.sections.map(section => ({
           ...section.toObject(),
           questions: section.questions.map(q => ({
-            _id: q._id,
+_id: q._id,
             question: q.question,
             options: q.options,
             difficulty: q.difficulty,
-            marks: q.marks
+            marks: q.marks,
+questionType: q.questionType,
+            correctAnswers: q.correctAnswers
           }))
         }))
       },
@@ -166,8 +168,19 @@ exports.submitMockTest = async (req, res) => {
         totalMaxScore += question.marks;
         sectionMaxScore += question.marks;
 
-        const userAnswer = answers[question._id.toString()];
-        const isCorrect = userAnswer === question.answer;
+        const userAnswerRaw = answers[question._id.toString()];
+        const userAnswerArray = Array.isArray(userAnswerRaw) ? userAnswerRaw.map(Number) : [Number(userAnswerRaw)].filter(n => !isNaN(n));
+        let isCorrect;
+        
+        if (question.questionType === 'single') {
+          isCorrect = userAnswerArray.length > 0 && userAnswerArray[0] === question.correctAnswers[0];
+        } else { // multi
+          const correctSet = new Set(question.correctAnswers);
+          const userSet = new Set(userAnswerArray);
+          isCorrect = userSet.size === correctSet.size && [...userSet].every(a => correctSet.has(a));
+        }
+        
+        console.log(`Q${question._id}: User=[${userAnswerArray}] Correct=[${question.correctAnswers}] isCorrect=${isCorrect}`);
 
         if (isCorrect) {
           totalScore += question.marks;
@@ -178,8 +191,8 @@ exports.submitMockTest = async (req, res) => {
 
         questionResults.push({
           questionId: question._id,
-          userAnswer,
-          correctAnswer: question.answer,
+          userAnswer: userAnswerArray,
+          correctAnswer: question.correctAnswers,
           isCorrect,
           marks: isCorrect ? question.marks : 0
         });

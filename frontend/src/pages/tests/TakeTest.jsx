@@ -114,11 +114,30 @@ const TakeTest = () => {
 
 
 
-  const handleAnswerSelect = (questionId, answerIndex) => {
-    setAnswers(prev => ({
-      ...prev,
-      [questionId]: answerIndex
-    }));
+const handleOptionChange = (questionId, index, isMulti) => {
+    setAnswers(prev => {
+      const current = prev[questionId] || (isMulti ? [] : -1);
+      if (isMulti) {
+        // Multi: toggle array
+        if (current.includes(index)) {
+          return {
+            ...prev,
+            [questionId]: current.filter(item => item !== index)
+          };
+        } else {
+          return {
+            ...prev,
+            [questionId]: [...current, index].sort((a,b)=>a-b)
+          };
+        }
+      } else {
+        // Single: replace
+        return {
+          ...prev,
+          [questionId]: index
+        };
+      }
+    });
   };
 
   // Get section break points for nav coloring if needed
@@ -355,7 +374,7 @@ const TakeTest = () => {
             className={`w-10 h-10 rounded-lg font-medium text-xs transition-all flex-shrink-0 ${
               currentQuestion === index
                 ? 'bg-primary-500 text-white shadow-md ring-2 ring-primary-200 ring-opacity-50'
-                : answers[q._id] !== undefined
+            : (answers[q._id]?.length > 0)
                   ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 shadow-sm border border-emerald-200'
                   : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:shadow-sm border border-slate-200'
             }`}
@@ -385,27 +404,39 @@ const TakeTest = () => {
 
 
         <div className="space-y-3">
-          {question.options.map((option, index) => (
-            <button
-              key={index}
-              onClick={() => handleAnswerSelect(question._id, index)}
-              className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
-                answers[question._id] === index
-                  ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 shadow-md'
-                  : answers[question._id] !== undefined
-                  ? 'border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50'
-                  : 'border-slate-200 dark:border-slate-600 hover:border-primary-300 hover:bg-slate-50'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-sm font-bold text-slate-600 dark:text-slate-300 min-w-[2.125rem]">
-                  {String.fromCharCode(65 + index)}
-                </span>
-                <span className="text-slate-700 dark:text-slate-200">{option}</span>
-              </div>
-            </button>
-
-          ))}
+{question.options.map((option, index) => {
+const isMulti = question.questionType === 'multi';
+            const currentAnswer = answers[question._id] || (isMulti ? [] : undefined);
+            const isSelected = isMulti ? currentAnswer?.includes(index) || false : currentAnswer === index;
+            const isAnswered = isMulti ? currentAnswer?.length > 0 : currentAnswer !== undefined;
+            
+            return (
+              <label key={index} className="w-full cursor-pointer">
+                <div 
+onClick={() => handleOptionChange(question._id, index, isMulti)}
+                  className={`w-full p-4 rounded-lg border-2 text-left transition-all flex items-center gap-3 option-card ${
+                    isSelected
+                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 shadow-md selected'
+                      : isAnswered
+                      ? 'border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50'
+                      : 'border-slate-200 dark:border-slate-600 hover:border-primary-300 hover:bg-slate-50'
+                  }`}
+                >
+                  <input 
+type={isMulti ? "checkbox" : "radio"}
+                    name={`question-${question._id}`}
+                    checked={isSelected}
+                    onChange={() => {}} 
+                    className="w-4 h-4 text-primary-600 border-slate-300 rounded focus:ring-primary-500"
+                  />
+                  <span className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-sm font-bold text-slate-600 dark:text-slate-300 flex-shrink-0 min-w-[2.125rem]">
+                    {String.fromCharCode(65 + index)}
+                  </span>
+                  <span className="flex-1 text-slate-700 dark:text-slate-200">{option}</span>
+                </div>
+              </label>
+            );
+          })}
         </div>
       </div>
 
