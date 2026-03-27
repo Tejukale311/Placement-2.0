@@ -8,7 +8,8 @@ const {
   getCompanyById,
   addCompanyQuestion,
   updateCompanyQuestion,
-  deleteCompanyQuestion
+  deleteCompanyQuestion,
+  verifyCompanyAnswer
 } = require('../controllers/companyController');
 const { protect, isAdmin } = require('../middleware/auth');
 
@@ -25,6 +26,9 @@ router.delete('/:name', protect, isAdmin, deleteCompany);
 router.post('/:id/questions', protect, isAdmin, addCompanyQuestion);
 router.put('/:id/questions/:questionId', protect, isAdmin, updateCompanyQuestion);
 router.delete('/:id/questions/:questionId', protect, isAdmin, deleteCompanyQuestion);
+
+// Public verify answer route (self-study)
+router.post('/:name/verify-answer', verifyCompanyAnswer);
 
 module.exports = router;
 

@@ -54,7 +54,11 @@ exports.getCompanyQuestions = async (req, res) => {
     const { name } = req.params;
     const { type } = req.query;
 
-    const company = await CompanyQuestion.findOne({ company: name });
+    // Case-insensitive lookup
+    const companyQuery = new RegExp(`^${name}$`, 'i');
+    console.log('🔍 USER FETCH company query:', name, 'regex:', companyQuery);
+    const company = await CompanyQuestion.findOne({ company: companyQuery });
+    console.log('📊 USER COMPANY FOUND:', !!company, company?.company);
 
     if (!company) {
       // Return sample data if not in database
@@ -76,6 +80,12 @@ exports.getCompanyQuestions = async (req, res) => {
       questions = questions.filter(q => q.type === type);
     }
 
+    // ❌ SECURITY: Remove correct answer from user response
+    const sanitizedQuestions = questions.map(q => {
+      const { answer, ...rest } = q.toObject();
+      return rest;
+    });
+
     res.status(200).json({
       success: true,
       company: {
@@ -83,11 +93,11 @@ exports.getCompanyQuestions = async (req, res) => {
         name: company.company,
         logo: company.logo,
         description: company.description,
-        questions,
+        questions: sanitizedQuestions,
         interviewQuestions: company.interviewQuestions,
         codingProblems: company.codingProblems,
         placementProcess: company.placementProcess,
-        totalQuestions: questions.length,
+        totalQuestions: sanitizedQuestions.length,
         totalCoding: company.codingProblems.length,
         totalInterview: company.interviewQuestions.length
       }
@@ -213,15 +223,19 @@ exports.getCompanyById = async (req, res) => {
 // @route   POST /api/companies/:id/questions
 // @access  Private (Admin)
 exports.addCompanyQuestion = async (req, res) => {
+  console.log('🔥 ADD COMPANY QUESTION - ENTRY:', { companyId: req.params.id, userId: req.user?._id, bodyKeys: Object.keys(req.body) });
   try {
     const { question, options, answer, difficulty, type, topic } = req.body;
 
+    console.log('🔍 Looking for company:', req.params.id);
     const company = await CompanyQuestion.findById(req.params.id);
+
+    console.log('📊 COMPANY:', !!company, company?.company, 'Questions before:', company?.questions?.length || 0);
 
     if (!company) {
       return res.status(404).json({
         success: false,
-        message: 'Company not found'
+        message: 'Company not found - ID: ' + req.params.id
       });
     }
 
@@ -234,8 +248,11 @@ exports.addCompanyQuestion = async (req, res) => {
       difficulty: difficulty || 'medium',
       topic
     });
+    console.log('➕ Question pushed. New length:', company.questions.length);
 
     await company.save();
+
+    console.log('💾 Company saved successfully. Total questions:', company.questions.length);
 
     // Update counts
     await CompanyQuestion.updateCounts(company.company);
@@ -246,11 +263,16 @@ exports.addCompanyQuestion = async (req, res) => {
       question: company.questions[company.questions.length - 1]
     });
   } catch (error) {
-    console.error('Add company question error:', error);
+    console.error('💥 ADD QUESTION ERROR - Details:', {
+      message: error.message,
+      companyId: req.params.id,
+      userId: req.user?._id,
+      body: req.body
+    });
     res.status(500).json({
       success: false,
-      message: 'Error adding question',
-      error: error.message
+      message: 'Error adding question: ' + error.message,
+      debugId: req.params.id
     });
   }
 };
@@ -356,6 +378,53 @@ exports.deleteCompanyQuestion = async (req, res) => {
     });
   }
 };
+
+// @desc    Verify company question answer (for self-study)
+// @route   POST /api/companies/:name/verify-answer  
+// @access  Public
+exports.verifyCompanyAnswer = async (req, res) => {
+  try {
+    const { name } = req.params;
+    const { questionIndex, userAnswerIndex } = req.body;
+
+    if (questionIndex === undefined || userAnswerIndex === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'questionIndex and userAnswerIndex required'
+      });
+    }
+
+    // Case-insensitive lookup
+    const companyQuery = new RegExp(`^${name}$`, 'i');
+    const company = await CompanyQuestion.findOne({ company: companyQuery });
+
+    if (!company || !company.questions[questionIndex]) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company or question not found'
+      });
+    }
+
+    const question = company.questions[questionIndex];
+    const correctAnswerIndex = question.answer;
+    const isCorrect = userAnswerIndex === correctAnswerIndex;
+
+    res.status(200).json({
+      success: true,
+      isCorrect,
+      correctAnswerIndex,
+      questionIndex,
+      userAnswerIndex,
+      correctOption: question.options[correctAnswerIndex]
+    });
+  } catch (error) {
+    console.error('Verify answer error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error verifying answer'
+    });
+  }
+}
 
 // Helper functions for sample data
 function getSampleInterviewQuestions(company) {

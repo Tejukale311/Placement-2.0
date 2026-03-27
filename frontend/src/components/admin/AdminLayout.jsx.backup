@@ -20,9 +20,11 @@ import {
 const menuItems = [
   { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/admin/users', icon: Users, label: 'Users' },
+
   { path: '/admin/questions', icon: FileQuestion, label: 'Questions' },
   { path: '/admin/programming', icon: Code, label: 'Programming' },
   { path: '/admin/company-questions', icon: Building2, label: 'Company Questions' },
+
   { path: '/admin/mock-tests', icon: ClipboardList, label: 'Mock Tests' },
   { path: '/admin/leaderboard', icon: Trophy, label: 'Leaderboard' },
   { path: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
@@ -32,7 +34,7 @@ const menuItems = [
 export default function AdminLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen ] = useState(true);
 
   const handleLogout = () => {
     logout();

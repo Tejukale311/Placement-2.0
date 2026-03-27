@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import api, { companiesAPI } from '../../services/api';
+import { companiesAPI } from '../../services/api';
 import {
   Building2,
   ChevronRight,
@@ -11,8 +11,6 @@ import {
   Loader2,
   ArrowLeft,
   CheckCircle,
-  CheckCircle2,
-  XCircle,
   Sparkles,
   Briefcase,
   GraduationCap,
@@ -46,11 +44,6 @@ const Companies = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('mcq');
   const [searchTerm, setSearchTerm] = useState('');
-  
-  const [selectedAnswers, setSelectedAnswers] = useState({});
-  const [checkedQuestions, setCheckedQuestions] = useState({});
-  const [answerResults, setAnswerResults] = useState({});
-  const [verifyingAnswers, setVerifyingAnswers] = useState({});
 
   useEffect(() => {
     fetchCompanies();
@@ -77,12 +70,11 @@ const Companies = () => {
   const fetchCompanyData = async () => {
     setLoading(true);
     try {
-      console.log('👤 USER FETCHING company:', name);
+      // Try to find company by name or use the name param
       const response = await companiesAPI.getOne(name);
-      console.log('👤 USER COMPANY DATA:', response.data.company?.questions?.length || 0);
       if (response.data.success) setCompanyData(response.data.company);
     } catch (error) {
-      console.error('Error fetching company data:', error.response?.status, error.response?.data);
+      console.error('Error fetching company data:', error);
     } finally {
       setLoading(false);
     }
@@ -95,48 +87,7 @@ const Companies = () => {
     return true;
   }).filter(q => q.question.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  const handleSelect = (questionIndex, optionIndex) => {
-    if (checkedQuestions[questionIndex]) return;
-    setSelectedAnswers(prev => ({
-      ...prev,
-      [questionIndex]: optionIndex
-    }));
-  };
-
-  const handleCheckAnswer = async (questionIndex) => {
-    const userAnswerIndex = selectedAnswers[questionIndex];
-    if (checkedQuestions[questionIndex] || userAnswerIndex === undefined || userAnswerIndex === null) return;
-
-    setVerifyingAnswers(prev => ({ ...prev, [questionIndex]: true }));
-    
-    try {
-      const response = await companiesAPI.getOne(name);
-      if (response.data.success) {
-        const fullCompany = response.data.company;
-        const question = fullCompany.questions[questionIndex];
-        
-        // Direct api call (companiesAPI doesn't expose raw api)
-        const verifyRes = await api.post(`/companies/${name}/verify-answer`, {
-          questionIndex,
-          userAnswerIndex
-        });
-        
-        if (verifyRes.data.success) {
-          setAnswerResults(prev => ({
-            ...prev,
-            [questionIndex]: verifyRes.data
-          }));
-          setCheckedQuestions(prev => ({ ...prev, [questionIndex]: true }));
-        }
-      }
-    } catch (error) {
-      console.error('Verify answer error:', error);
-      alert('Error checking answer');
-    } finally {
-      setVerifyingAnswers(prev => ({ ...prev, [questionIndex]: false }));
-    }
-  };
-
+  // Show company list
   if (!name) {
     return (
       <div className="space-y-6">
@@ -270,101 +221,26 @@ const Companies = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredQuestions?.length > 0 ? filteredQuestions.map((q, index) => {
-            const isChecked = checkedQuestions[index];
-            const userSelected = selectedAnswers[index];
-            const result = answerResults[index];
-            const correctIdx = result?.correctAnswerIndex;
-
-            return (
-              <div key={index} className="card p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="font-semibold text-slate-800 dark:text-white">{q.question}</h3>
-                  <span className={`badge ${q.difficulty === 'easy' ? 'badge-success' : q.difficulty === 'medium' ? 'badge-warning' : 'badge-danger'}`}>{q.difficulty}</span>
-                </div>
-                {q.type === 'mcq' && q.options && (
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      {q.options.map((option, i) => {
-                        const isUserSelected = userSelected === i;
-                        const isCorrectOption = i === correctIdx;
-                        
-                        let optionClass = 'border-slate-200 dark:border-slate-600 hover:border-primary-400 hover:bg-primary-50 transition-all';
-                        
-                        if (isChecked) {
-                          if (i === correctIdx) {
-                            optionClass = 'border-green-400 bg-green-50 dark:bg-green-900/20 ring-2 ring-green-200 shadow-md';
-                          } else if (i === userSelected && userSelected !== correctIdx) {
-                            optionClass = 'border-red-400 bg-red-50 dark:bg-red-900/20 ring-2 ring-red-200 line-through opacity-75';
-                          }
-                        } else if (isUserSelected) {
-                          optionClass = 'border-blue-400 bg-blue-50 dark:bg-blue-900/20 shadow-sm';
-                        }
-                        
-                        return (
-                          <label key={i} className={`flex items-center p-3 rounded-xl cursor-pointer group ${optionClass} ${isChecked ? 'cursor-not-allowed' : ''}`}>
-                            <input
-                              type="radio"
-                              name={`q-${index}`}
-                              checked={isUserSelected}
-                              onChange={() => handleSelect(index, i)}
-                              disabled={isChecked}
-                              className="w-4 h-4 text-primary-600 bg-slate-100 border-slate-300 focus:ring-primary-500 mr-3 rounded"
-                            />
-                            <span className="flex items-center gap-2 flex-1 text-slate-700 dark:text-slate-300">
-                              <span className="font-semibold">{String.fromCharCode(65 + i)}.</span>
-                              {option}
-                              {isChecked && isCorrectOption && (
-                                <CheckCircle className="w-5 h-5 text-green-500 ml-2" />
-                              )}
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                    
-                    {verifyingAnswers[index] ? (
-                      <button disabled className="w-full py-2 px-4 bg-emerald-500/50 text-white rounded-lg font-medium flex items-center justify-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Checking...
-                      </button>
-                    ) : !isChecked ? (
-                      <button
-                        onClick={() => handleCheckAnswer(index)}
-                        disabled={!userSelected}
-                        className="w-full py-2 px-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
-                      >
-                        Check Answer
-                      </button>
-                    ) : (
-                      <div className={`p-4 rounded-lg border-l-4 ${result.isCorrect ? 'bg-green-50 border-green-400' : 'bg-red-50 border-red-400'}`}>
-                        <div className="flex items-start gap-3">
-                          {result.isCorrect ? (
-                            <CheckCircle className="w-6 h-6 text-green-500 mt-0.5 flex-shrink-0" />
-                          ) : (
-                            <XCircle className="w-6 h-6 text-red-500 mt-0.5 flex-shrink-0" />
-                          )}
-                          <div>
-                            <p className={`font-semibold mb-1 ${result.isCorrect ? 'text-green-800' : 'text-red-800'}`}>
-                              {result.isCorrect ? '✅ Correct!' : '❌ Incorrect'}
-                            </p>
-                            <p className="text-lg font-bold text-slate-800 mb-2">
-                              Correct: {String.fromCharCode(65 + correctIdx)}. {q.options[correctIdx]}
-                            </p>
-                            {userSelected !== correctIdx && (
-                              <p className="text-sm text-slate-600">
-                                Your answer: {String.fromCharCode(65 + userSelected)}. {q.options[userSelected]}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
+          {filteredQuestions?.length > 0 ? filteredQuestions.map((q, index) => (
+            <div key={index} className="card p-5">
+              <div className="flex items-start justify-between mb-3">
+                <h3 className="font-semibold text-slate-800 dark:text-white">{q.question}</h3>
+                <span className={`badge ${q.difficulty === 'easy' ? 'badge-success' : q.difficulty === 'medium' ? 'badge-warning' : 'badge-danger'}`}>{q.difficulty}</span>
               </div>
-            );
-          }) : (
+              {q.type === 'mcq' && q.options && (
+                <div className="space-y-2 mt-4">
+                  {q.options.map((option, i) => (
+                    <div key={i} className={`p-3 rounded-xl border-2 transition-colors ${q.answer === i ? 'border-success-500 bg-success-50 dark:bg-success-900/20' : 'border-slate-200 dark:border-slate-600'}`}>
+                      <div className="flex items-center gap-2">
+                        {q.answer === i && <CheckCircle className="w-5 h-5 text-success-500" />}
+                        <span className="text-slate-700 dark:text-slate-300"><span className="font-semibold">{String.fromCharCode(65 + i)}.</span> {option}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )) : (
             <div className="card p-8 text-center">
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                 <BookOpen className="w-8 h-8 text-slate-400" />
@@ -380,3 +256,4 @@ const Companies = () => {
 };
 
 export default Companies;
+
