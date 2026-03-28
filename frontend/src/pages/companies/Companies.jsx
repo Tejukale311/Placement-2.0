@@ -51,6 +51,7 @@ const Companies = () => {
   const [checkedQuestions, setCheckedQuestions] = useState({});
   const [answerResults, setAnswerResults] = useState({});
   const [verifyingAnswers, setVerifyingAnswers] = useState({});
+  const [showSelectionError, setShowSelectionError] = useState({});
 
   useEffect(() => {
     fetchCompanies();
@@ -95,17 +96,26 @@ const Companies = () => {
     return true;
   }).filter(q => q.question.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  const handleSelect = (questionIndex, optionIndex) => {
+const handleSelect = (questionIndex, optionIndex) => {
     if (checkedQuestions[questionIndex]) return;
     setSelectedAnswers(prev => ({
       ...prev,
       [questionIndex]: optionIndex
     }));
+    setShowSelectionError(prev => {
+      const newError = { ...prev };
+      delete newError[questionIndex];
+      return newError;
+    });
   };
 
   const handleCheckAnswer = async (questionIndex) => {
     const userAnswerIndex = selectedAnswers[questionIndex];
-    if (checkedQuestions[questionIndex] || userAnswerIndex === undefined || userAnswerIndex === null) return;
+    if (checkedQuestions[questionIndex]) return;
+    if (userAnswerIndex === undefined || userAnswerIndex === null) {
+      setShowSelectionError(prev => ({ ...prev, [questionIndex]: true }));
+      return;
+    }
 
     setVerifyingAnswers(prev => ({ ...prev, [questionIndex]: true }));
     
@@ -323,6 +333,14 @@ const Companies = () => {
                       })}
                     </div>
                     
+                    {showSelectionError[index] && (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg mb-3">
+                        <p className="text-sm text-red-800 font-medium flex items-center gap-2">
+                          <XCircle className="w-4 h-4" />
+                          Please select an option first
+                        </p>
+                      </div>
+                    )}
                     {verifyingAnswers[index] ? (
                       <button disabled className="w-full py-2 px-4 bg-emerald-500/50 text-white rounded-lg font-medium flex items-center justify-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -331,8 +349,7 @@ const Companies = () => {
                     ) : !isChecked ? (
                       <button
                         onClick={() => handleCheckAnswer(index)}
-                        disabled={!userSelected}
-                        className="w-full py-2 px-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+                        className="w-full py-2 px-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors"
                       >
                         Check Answer
                       </button>

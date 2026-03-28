@@ -1,15 +1,13 @@
-# Task Progress Tracker
+# MCQ Bug Fix - Companies.jsx
 
-## Backend Fix - SyntaxError ✅ COMPLETE
-- [x] Duplicate `deleteCompanyQuestion` removed → Server runs!
+**Status: Completed**
 
-## Frontend Companies.jsx Fixes ✅ COMPLETE
-- [x] Fixed import: `api, { companiesAPI }` → Module export error resolved
-- [x] Fixed falsy check: `!userAnswerIndex` → `userAnswerIndex === undefined/null` → **First option (index=0) now works!**
+## Steps:
+1. ✅ Add `showSelectionError` state object `{}` 
+2. ✅ Update `handleCheckAnswer`: set error if no userAnswerIndex, show message
+3. ✅ Add `handleSelect`: clear error on selection
+4. ✅ Render error message: 'Please select an option first' above button if error
+5. ✅ Verify no default selection (radio checked only on explicit selection)
+6. ✅ Test validation and answer display logic
 
-## Verify Full Flow
-1. Backend: `cd backend && npm run dev` (separate commands)
-2. Frontend: `cd frontend && npm run dev`
-3. Test: /companies/tcs → Select question → Check Answer ✅
-
-**Project fully operational!** 🎉
+All changes implemented in `frontend/src/pages/companies/Companies.jsx`. No default selection (selectedAnswers={} initially), validation message shows on "Check Answer" click without selection, clears on select, answers display only after valid check.
