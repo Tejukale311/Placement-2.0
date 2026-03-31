@@ -2,10 +2,8 @@ const ProgrammingQuestion = require('../models/ProgrammingQuestion');
 const Submission = require('../models/Submission');
 const User = require('../models/User');
 
-// Judge0 API configuration
-const JUDGE0_API_URL = 'https://judge0-ce.p.rapidapi.com';
-const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY;
-const JUDGE0_HOST = process.env.JUDGE0_API_HOST || 'judge0-ce.p.rapidapi.com';
+// Judge0 Public Free API configuration (no key required)
+const JUDGE0_API_URL = 'https://ce.judge0.com';
 
 const languageIds = {
   javascript: 63,
@@ -21,9 +19,7 @@ const judge0Request = async (endpoint, method, body = null) => {
   const options = {
     method,
     headers: {
-      'Content-Type': 'application/json',
-      'X-RapidAPI-Key': JUDGE0_API_KEY,
-      'X-RapidAPI-Host': JUDGE0_HOST
+      'Content-Type': 'application/json'
     }
   };
 
