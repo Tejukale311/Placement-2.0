@@ -1,13 +1,9 @@
-# MCQ Bug Fix - Companies.jsx
-
-**Status: Completed**
+# Integration of Judge0 Public Free API - TODO
 
 ## Steps:
-1. ✅ Add `showSelectionError` state object `{}` 
-2. ✅ Update `handleCheckAnswer`: set error if no userAnswerIndex, show message
-3. ✅ Add `handleSelect`: clear error on selection
-4. ✅ Render error message: 'Please select an option first' above button if error
-5. ✅ Verify no default selection (radio checked only on explicit selection)
-6. ✅ Test validation and answer display logic
+- [ ] Step 1: Update backend/controllers/codingController.js to use public Judge0 API
+- [ ] Step 2: Update backend/controllers/programmingController.js to use public Judge0 API  
+- [ ] Step 3: Test the endpoints
+- [ ] Step 4: Verify frontend integration
+- [ ] Step 5: Complete task and cleanup TODO.md
 
-All changes implemented in `frontend/src/pages/companies/Companies.jsx`. No default selection (selectedAnswers={} initially), validation message shows on "Check Answer" click without selection, clears on select, answers display only after valid check.
