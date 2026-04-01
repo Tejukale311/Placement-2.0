@@ -11,7 +11,11 @@ const languageIds = {
   java: 62,
   cpp: 54,
   c: 50,
-  sql: 82
+  sql: 82,
+  kotlin: 78,
+  'go': 80,
+  rust: 73,
+  typescript: 178
 };
 
 // Helper function to make Judge0 API requests

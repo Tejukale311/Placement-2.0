@@ -69,7 +69,11 @@ const codingQuestionSchema = new mongoose.Schema({
     java: String,
     cpp: String,
     c: String,
-    sql: String
+    sql: String,
+    kotlin: String,
+    go: String,
+    rust: String,
+    typescript: String
   },
   solution: {
     javascript: String,

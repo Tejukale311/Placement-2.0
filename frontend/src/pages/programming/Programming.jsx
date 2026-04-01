@@ -22,13 +22,9 @@ import {
   ArrowRight
 } from 'lucide-react';
 
-const languages = [
-  { id: 'javascript', name: 'JavaScript', monaco: 'javascript' },
-  { id: 'python', name: 'Python', monaco: 'python' },
-  { id: 'java', name: 'Java', monaco: 'java' },
-  { id: 'cpp', name: 'C++', monaco: 'cpp' },
-  { id: 'sql', name: 'SQL', monaco: 'sql' }
-];
+import { allLanguages } from '../../data/allLanguages.js';
+
+const languages = allLanguages;
 
 const categories = [
   { id: 'exercises', name: 'Exercises', icon: Code, gradient: 'from-green-500 to-emerald-500', desc: 'Practice coding problems' },

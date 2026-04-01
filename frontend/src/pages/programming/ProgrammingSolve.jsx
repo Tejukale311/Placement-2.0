@@ -6,13 +6,27 @@ import { ArrowLeft, Play, Zap, Loader2, CheckCircle, XCircle, Terminal } from 'l
 import { programmingAPI } from '../../services/programmingAPI';
 
 
-const languages = [
-  { id: 'javascript', name: 'JavaScript', monaco: 'javascript' },
-  { id: 'python', name: 'Python', monaco: 'python' },
-  { id: 'java', name: 'Java', monaco: 'java' },
-  { id: 'cpp', name: 'C++', monaco: 'cpp' },
-  { id: 'sql', name: 'SQL', monaco: 'sql' }
-];
+// Safe import with fallback
+let safeLanguages = [{ id: 'javascript', name: 'JavaScript', monaco: 'javascript' }, { id: 'python', name: 'Python', monaco: 'python' }];
+let safeCodeTemplates = {
+  javascript: `function solution(input) {
+  // write your code here  
+  return input;
+}`,
+  python: `def solution(input):
+    # write your code here
+    pass`
+};
+
+(async () => {
+  try {
+    const mod = await import('../../data/codeTemplates.js');
+    if (Array.isArray(mod.languages)) safeLanguages = mod.languages;
+    if (mod.codeTemplates) safeCodeTemplates = mod.codeTemplates;
+  } catch (e) {
+    console.warn('Code templates load failed, using fallback:', e);
+  }
+})();
 
 const ProgrammingSolve = () => {
   const { section, topic, difficulty, questionId } = useParams();
@@ -47,6 +61,8 @@ const ProgrammingSolve = () => {
     setLanguage(newLang);
     if (question?.starterCode?.[newLang]) {
       setCode(question.starterCode[newLang]);
+    } else {
+      setCode(safeCodeTemplates[newLang] || safeCodeTemplates.javascript || '// Write code here');
     }
   };
 
@@ -189,7 +205,7 @@ const ProgrammingSolve = () => {
               onChange={(e) => handleLanguageChange(e.target.value)}
               className="px-4 py-2 bg-white dark:bg-slate-700 text-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-600 focus:ring-2 focus:ring-indigo-500 font-medium"
             >
-              {languages.map(lang => (
+              {safeLanguages.map(lang => (
                 <option key={lang.id} value={lang.id}>{lang.name}</option>
               ))}
             </select>
@@ -217,7 +233,7 @@ const ProgrammingSolve = () => {
         <div className="flex-1 flex overflow-hidden">
           <Editor 
             height="100%" 
-            language={languages.find(l => l.id === language)?.monaco || 'javascript'}
+            language={safeLanguages.find(l => l.id === language)?.monaco || 'javascript'}
             value={code} 
             onChange={setCode}
             theme="vs-dark" 

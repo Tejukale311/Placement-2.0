@@ -8,7 +8,7 @@ const Header = ({ toggleSidebar }) => {
   const { user, logout } = useAuth();
 
   return (
-    <header className="h-16 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between px-4 lg:px-6">
+    <header className="h-16 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between px-4 lg:px-6 relative z-[100]">
       {/* Left side */}
       <div className="flex items-center gap-4">
         <button
@@ -71,7 +71,7 @@ const Header = ({ toggleSidebar }) => {
           </button>
 
           {/* Dropdown Menu */}
-          <div className="absolute right-0 top-full mt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+          <div className="absolute right-0 top-full mt-2 w-56 opacity-0 invisible pointer-events-none group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-all duration-200 z-[999] origin-top-right">
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
               <div className="p-3 border-b border-slate-200/50 dark:border-slate-700/50">
                 <p className="font-semibold text-slate-800 dark:text-white">{user?.name}</p>
@@ -81,10 +81,6 @@ const Header = ({ toggleSidebar }) => {
                 <Link to="/profile" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors">
                   <User className="w-4 h-4" />
                   <span className="text-sm">Profile</span>
-                </Link>
-                <Link to="/admin/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors">
-                  <Settings className="w-4 h-4" />
-                  <span className="text-sm">Settings</span>
                 </Link>
                 <button onClick={logout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition-colors">
                   <LogOut className="w-4 h-4" />

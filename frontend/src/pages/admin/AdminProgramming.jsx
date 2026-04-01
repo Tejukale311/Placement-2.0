@@ -512,7 +512,7 @@ const res = await adminProgrammingAPI.getAll(params);
                 <div>
                   <label className="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">Languages</label>
                   <div className="space-y-2">
-                    {['javascript', 'python', 'java', 'cpp'].map((lang) => (
+                    {['javascript', 'python', 'java', 'cpp', 'kotlin', 'go', 'rust', 'typescript'].map((lang) => (
                       <label key={lang} className="flex items-center gap-2 p-2 hover:bg-slate-50 dark:hover:bg-slate-700 rounded cursor-pointer">
                         <input
                           type="checkbox"

@@ -4,7 +4,7 @@ import { Plus, Edit, Trash2, X } from 'lucide-react';
 
 const categories = ['arrays', 'strings', 'linked-lists', 'trees', 'graphs', 'dynamic-programming', 'sorting', 'searching', 'mathematics', 'general'];
 const difficulties = ['easy', 'medium', 'hard'];
-const languages = ['javascript', 'python', 'java', 'cpp', 'c', 'sql'];
+const languages = ['javascript', 'python', 'java', 'cpp', 'c', 'sql', 'kotlin', 'go', 'rust', 'typescript'];
 
 export default function AdminCodingQuestions() {
   const [questions, setQuestions] = useState([]);
